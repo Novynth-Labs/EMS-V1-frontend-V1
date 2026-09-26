@@ -73,3 +73,64 @@ export const getLockedUsers = async () => {
   return Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
 };
 
+export interface LoginLogItem {
+  id: string;
+  userId: string | null;
+  userName: string | null;
+  empId: string | null;
+  avatarUrl: string | null;
+  emailAttempted: string;
+  ipAddress: string;
+  userAgent: string;
+  success: boolean;
+  failureReason: string | null;
+  stage: string;
+  isLocked: boolean;
+  department: string | null;
+  role: string | null;
+  roles: string[];
+  createdAt: string;
+}
+
+export interface LoginLogsStats {
+  totalAttempts: number;
+  successfulLogins: number;
+  failedLogins: number;
+  todayAttempts: number;
+  todaySuccessful: number;
+  todayFailed: number;
+  uniqueUsersToday: number;
+  lockedCount: number;
+  trend: Array<{
+    date: string;
+    day: string;
+    success: number;
+    failed: number;
+    total: number;
+  }>;
+}
+
+export const getLoginLogs = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: 'all' | 'success' | 'failed';
+  startDate?: string;
+  endDate?: string;
+  role?: string;
+}) => {
+  const response = await api.get('/admin/login-logs', { params });
+  return response.data?.data || response.data;
+};
+
+export const getLoginLogsStats = async (): Promise<LoginLogsStats> => {
+  const response = await api.get('/admin/login-logs/stats');
+  return response.data?.data || response.data;
+};
+
+export const clearOldLoginLogs = async (days = 90) => {
+  const response = await api.delete('/admin/login-logs/clear', { data: { days } });
+  return response.data;
+};
+
+

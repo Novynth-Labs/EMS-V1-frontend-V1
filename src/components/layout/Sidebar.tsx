@@ -5,7 +5,7 @@ import { useOnboarding } from '../../contexts/OnboardingContext';
 import { 
   LayoutDashboard, Users, CheckSquare, Settings, UserPlus, 
   ClipboardList, Camera, MessageCircle, FolderKanban, 
-  FileText, PlusCircle, Shield, BarChart3, UserCheck, 
+  FileText, PlusCircle, Shield, ShieldAlert, BarChart3, UserCheck, 
   GitPullRequest, Building2, Calendar, UserMinus, BookOpen, Clock,
   ChevronDown, ChevronRight, Award, DollarSign, Hexagon, Video
 } from 'lucide-react';
@@ -153,6 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         { label: 'Grant HR', path: '/admin/grant-hr', icon: <Shield size={18} />, roles: ['Super Admin'] },
         { label: 'Departments', path: '/admin/departments', icon: <Building2 size={18} />, roles: ['Super Admin'] },
         { label: 'Role Cards', path: '/admin/role-cards', icon: <UserCheck size={18} />, roles: ['Super Admin'] },
+        { label: 'Login Logs', path: '/admin/login-logs', icon: <ShieldAlert size={18} />, roles: ['Super Admin', 'Admin', 'HR', 'CEO', 'CTO'] },
         { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['Super Admin'] },
       ],
     },

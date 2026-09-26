@@ -31,6 +31,7 @@ const AssignTeamLeadPage = lazy(() => import('./pages/admin/AssignTeamLeadPage')
 const GrantHRPage = lazy(() => import('./pages/admin/GrantHRPage').then(m => ({ default: m.GrantHRPage })));
 const DepartmentsPage = lazy(() => import('./pages/admin/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
 const RoleCardsDirectory = lazy(() => import('./pages/admin/RoleCardsDirectory').then(m => ({ default: m.RoleCardsDirectory })));
+const LoginLogsPage = lazy(() => import('./pages/admin/LoginLogsPage').then(m => ({ default: m.LoginLogsPage })));
 
 // HR Onboarding Pages
 const OnboardEmployeePage = lazy(() => import('./pages/hr/OnboardEmployeePage').then(m => ({ default: m.OnboardEmployeePage })));
@@ -89,15 +90,6 @@ const MeetingRoom = lazy(() => import('./pages/meetings/LiveKitMeetingRoom').the
 const MeetingAnalyticsPage = lazy(() => import('./pages/meetings/MeetingAnalyticsPage').then(m => ({ default: m.MeetingAnalyticsPage })));
 
 const SubmitDocumentsPage = lazy(() => import('./pages/hr/SubmitDocumentsPage').then(m => ({ default: m.SubmitDocumentsPage })));
-
-declare global {
-  interface Window {
-    electronAPI?: {
-      onDeepLink: (callback: (url: string) => void) => (() => void) | void;
-      onNavigate?: (callback: (path: string) => void) => (() => void) | void;
-    };
-  }
-}
 
 function DeepLinkListener() {
   const navigate = useNavigate();
@@ -256,8 +248,9 @@ function App() {
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
 
-                <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'HR', 'CEO', 'CTO']} />}>
+                <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'Admin', 'HR', 'CEO', 'CTO']} />}>
                   <Route path="/admin/reports" element={<ReportsPage />} />
+                  <Route path="/admin/login-logs" element={<LoginLogsPage />} />
                 </Route>
 
                 {/* HR / Super Admin */}
