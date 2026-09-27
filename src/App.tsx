@@ -61,7 +61,7 @@ const AllRequestsPage = lazy(() => import('./pages/admin/AllRequestsPage').then(
 
 // Attendance & Inactivity Pages
 const CheckInPage = lazy(() => import('./pages/attendance/CheckInPage').then(m => ({ default: m.CheckInPage })));
-// const StandupsTrackerPage = lazy(() => import('./pages/attendance/StandupsTrackerPage').then(m => ({ default: m.StandupsTrackerPage })));
+const StandupsTrackerPage = lazy(() => import('./pages/attendance/StandupsTrackerPage').then(m => ({ default: m.StandupsTrackerPage })));
 const AttendanceLogPage = lazy(() => import('./pages/attendance/AttendanceLogPage').then(m => ({ default: m.AttendanceLogPage })));
 
 // Messaging & Notifications
@@ -197,7 +197,7 @@ function App() {
 
                 {/* Attendance Routes */}
                 <Route path="/attendance/check-in" element={<CheckInPage />} />
-                {/* <Route path="/attendance/standups" element={<StandupsTrackerPage />} /> */}
+                <Route path="/attendance/standups" element={<StandupsTrackerPage />} />
                 <Route path="/attendance/log" element={<AttendanceLogPage />} />
                 <Route path="/attendance/enroll-face" element={<EnrollFacePage />} />
 

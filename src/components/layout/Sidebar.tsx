@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       items: [
         { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'Tasks', path: '/tasks', icon: <CheckSquare size={18} />, roles: ['Super Admin', 'Dept Head', 'Team Lead', 'Employee', 'Intern'] },
-        // { label: 'Standups', path: '/attendance/standups', icon: <Users size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
+        { label: 'Standups', path: '/attendance/standups', icon: <Users size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'Meetings', path: '/meetings', icon: <Calendar size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'File Explorer', path: '/files', icon: <ClipboardList size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
       ],
