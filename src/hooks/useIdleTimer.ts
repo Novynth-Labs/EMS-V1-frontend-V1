@@ -31,8 +31,8 @@ const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
  * Resets on any user interaction event.
  */
 export const useIdleTimer = ({
-  warnAfterMs  = 28 * 60 * 1000,  // 28 min  → show warning dialog
-  expireAfterMs = 30 * 60 * 1000, // 30 min  → force logout
+  warnAfterMs  = 23 * 60 * 60 * 1000,  // 23 hours → show warning dialog
+  expireAfterMs = 24 * 60 * 60 * 1000, // 24 hours (1 day) → force logout
   onWarn,
   onExpire,
   enabled = true,

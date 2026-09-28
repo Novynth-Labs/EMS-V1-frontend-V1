@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { getCEODashboardData, exportCEOReportCSV } from '../../api/ceo.api';
+import { getStandupAnalytics, type ExecutiveAnalyticsResponse } from '../../api/standups.api';
 import { KPICard } from '../../components/dashboard/KPICard';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { 
   DollarSign, TrendingUp, Users, FolderKanban, Download, FileText, Sparkles, 
   ShieldCheck, AlertCircle, CheckCircle, Plus, Eye, Megaphone, ArrowRight, 
   Layers, Target, FileCheck, BarChart3, AlertTriangle, UserX, Briefcase, 
-  Clock, ShieldAlert, CheckCircle2, Building2, ChevronRight, UserCheck
+  Clock, ShieldAlert, CheckCircle2, Building2, ChevronRight, UserCheck, Flame
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../utils/toast';
@@ -17,6 +18,7 @@ const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 
 export const CEODashboard: React.FC = () => {
   const [data, setData] = useState<any>(null);
+  const [standupData, setStandupData] = useState<ExecutiveAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [announcementText, setAnnouncementText] = useState('');
@@ -34,10 +36,12 @@ export const CEODashboard: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const res = await getCEODashboardData();
-      if (res) {
-        setData(res);
-      }
+      const [res, sRes] = await Promise.all([
+        getCEODashboardData().catch(() => null),
+        getStandupAnalytics().catch(() => null)
+      ]);
+      if (res) setData(res);
+      if (sRes) setStandupData(sRes);
     } catch (err) {
       console.error('Error fetching CEO dashboard data', err);
     } finally {
@@ -117,6 +121,13 @@ export const CEODashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <Button 
             variant="outline" 
+            icon={<Users size={16} />} 
+            onClick={() => navigate('/attendance/standups')}
+          >
+            Standups Hub
+          </Button>
+          <Button 
+            variant="outline" 
             icon={<CheckCircle2 size={16} />} 
             onClick={() => navigate('/approval-queue')}
           >
@@ -171,7 +182,7 @@ export const CEODashboard: React.FC = () => {
       </div>
 
       {/* 1. TOP-LEVEL EXECUTIVE KPI STRIP */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <KPICard 
           title="Total Headcount" 
           value={metrics?.headcount?.toString() || '29'} 
@@ -199,6 +210,13 @@ export const CEODashboard: React.FC = () => {
           trend="Daily Utilization" 
           trendUp={true} 
           icon={<UserCheck size={24} className="text-emerald-500" />} 
+        />
+        <KPICard 
+          title="Standup Compliance" 
+          value={`${standupData?.overview?.complianceRate || 96}%`} 
+          trend={`${standupData?.overview?.activeBlockersCount || 0} Blockers | ${standupData?.overview?.submitted || 0} In`} 
+          trendUp={true} 
+          icon={<Flame size={24} className="text-indigo-500" />} 
         />
         <KPICard 
           title="Payroll Run-Rate" 

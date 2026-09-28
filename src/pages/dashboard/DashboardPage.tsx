@@ -10,11 +10,12 @@ import {
   getSecurityDashboardData, getFinanceDashboardData, createSOP, logRisk, 
   logIncident, logInternHours 
 } from '../../api/dashboard.api';
+import { getTodayStandupStatus, type TodayStandupStatusResponse } from '../../api/standups.api';
 import { 
   Users, FolderKanban, Clock, Activity, ArrowRight, UserPlus, 
   FileText, CheckCircle, TrendingUp, BarChart3, Briefcase, Calendar, 
   Shield, Zap, Sparkles, Plus, Target, Cpu, Layers, Lock, 
-  DollarSign, BookOpen, AlertTriangle
+  DollarSign, BookOpen, AlertTriangle, CheckCircle2, XCircle, Send, HelpCircle
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
@@ -32,6 +33,7 @@ export const DashboardPage: React.FC = () => {
   // Consolidated Data State
   const [loading, setLoading] = useState(true);
   const [adminData, setAdminData] = useState<any>(null);
+  const [standupData, setStandupData] = useState<TodayStandupStatusResponse | null>(null);
   const [employeeData, setEmployeeData] = useState<{ tasks: any[]; requests: any[]; approvals: any[] }>({
     tasks: [],
     requests: [],
@@ -61,9 +63,10 @@ export const DashboardPage: React.FC = () => {
       try {
         const promises: Promise<any>[] = [];
 
-        // 1. Personal Employee Tasks & Requests (Accessible to all authenticated users)
+        // 1. Personal Employee Tasks & Requests & Daily Standup Status
         const personalTasksPromise = getMyTasks().catch(() => []);
         const personalRequestsPromise = getMyRequests().catch(() => []);
+        const standupPromise = getTodayStandupStatus().catch(() => null);
         const approvalQueuePromise = hasPermission(userPermissions, 'view_team_queue')
           ? getApprovalQueue(role!).catch(() => [])
           : Promise.resolve([]);
@@ -84,15 +87,16 @@ export const DashboardPage: React.FC = () => {
         const financePromise = hasPermission(userPermissions, 'view_finance_module') ? getFinanceDashboardData().catch(() => null) : Promise.resolve(null);
 
         const [
-          tasks, requests, approvals, 
+          tasks, requests, sStatus, approvals, 
           aData, oData, gData, pData, dData, eData, aiRes, sData, fData
         ] = await Promise.all([
-          personalTasksPromise, personalRequestsPromise, approvalQueuePromise,
+          personalTasksPromise, personalRequestsPromise, standupPromise, approvalQueuePromise,
           adminPromise, opsPromise, growthPromise, productPromise, designPromise, 
           engPromise, aiPromise, securityPromise, financePromise
         ]);
 
         setEmployeeData({ tasks: tasks || [], requests: requests || [], approvals: approvals || [] });
+        setStandupData(sStatus);
         setAdminData(aData);
         setOpsData(oData);
         setGrowthData(gData);
@@ -218,6 +222,25 @@ export const DashboardPage: React.FC = () => {
               <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">My Tasks</p>
             </div>
 
+            {/* Standup Status Bubble */}
+            <Link
+              to="/attendance/standups"
+              className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/15 text-center min-w-[95px] hover:bg-white/20 transition-all block cursor-pointer"
+            >
+              <p className={`text-base font-black ${
+                standupData?.submission?.status === 'SUBMITTED' ? 'text-emerald-300' :
+                standupData?.submission?.status === 'LATE' ? 'text-amber-300' :
+                standupData?.isLocked ? 'text-rose-400' :
+                standupData?.missedCount && standupData.missedCount > 0 ? 'text-rose-300' : 'text-sky-300'
+              }`}>
+                {standupData?.submission?.status === 'SUBMITTED' ? '✓ Submitted' :
+                 standupData?.submission?.status === 'LATE' ? '⏳ Late' :
+                 standupData?.isLocked ? '🔒 Locked' :
+                 standupData?.missedCount && standupData.missedCount > 0 ? `${standupData.missedCount} Missed` : '⏰ Pending'}
+              </p>
+              <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">Standup</p>
+            </Link>
+
             {hasPermission(userPermissions, 'view_team_queue') && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/15 text-center min-w-[95px]">
                 <p className="text-2xl font-black text-amber-300">{pendingApprovals}</p>
@@ -237,6 +260,25 @@ export const DashboardPage: React.FC = () => {
 
       {/* ── 2. QUICK ACTIONS TOOLBAR ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {hasPermission(userPermissions, 'view_employee_workspace') && (
+          <Link to="/attendance/standups" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform ${
+                standupData?.submission ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
+              }`}>
+                <Users size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">Daily Standup</h4>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {standupData?.submission ? '✓ Logged for today' : 'Due by 10:30 AM'}
+                </p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+
         {hasPermission(userPermissions, 'view_employee_workspace') && (
           <Link to="/attendance/check-in" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center gap-3.5">
@@ -282,21 +324,6 @@ export const DashboardPage: React.FC = () => {
           </Link>
         )}
 
-        {hasPermission(userPermissions, 'view_growth_module') && (
-          <Link to="/crm" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Briefcase size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="font-bold text-sm text-slate-900 group-hover:text-rose-600 transition-colors">Leads Hub</h4>
-                <p className="text-[11px] text-slate-400">CRM & growth pipeline</p>
-              </div>
-              <ArrowRight size={16} className="text-slate-300 group-hover:text-rose-500 group-hover:translate-x-0.5 transition-all" />
-            </div>
-          </Link>
-        )}
-
         {hasPermission(userPermissions, ['view_hr_module', 'manage_users']) && (
           <Link to="/users" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center gap-3.5">
@@ -311,6 +338,76 @@ export const DashboardPage: React.FC = () => {
             </div>
           </Link>
         )}
+      </div>
+
+      {/* ── STANDUP PROTOCOL & TODAY'S STATUS WIDGET ─────────────────────── */}
+      <div className="p-6 rounded-3xl border border-indigo-900/40 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                Standup Protocol
+              </span>
+              {standupData?.isLocked ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
+                  <Lock size={12} /> Account Locked
+                </span>
+              ) : standupData?.submission ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 size={12} /> {standupData.submission.status === 'LATE' ? 'Submitted (Late)' : 'Submitted On-Time'}
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 animate-pulse">
+                  <Clock size={12} /> Action Required
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-lg md:text-xl font-extrabold text-white flex items-center gap-2">
+              <Users className="text-indigo-400" size={22} />
+              Daily Standup Status
+            </h3>
+
+            {standupData?.submission ? (
+              <div className="text-xs text-slate-300 space-y-1 max-w-2xl">
+                <p className="line-clamp-2">
+                  <strong className="text-white">Logged Work:</strong> {standupData.submission.workToday || 'Work summary recorded'}
+                </p>
+                {standupData.submission.hasBlockers && (
+                  <p className="text-amber-300 font-semibold flex items-center gap-1">
+                    <AlertTriangle size={13} /> Blocker reported: {standupData.submission.blockers}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                Daily standups keep leadership aligned. Today's deadline is{' '}
+                <strong className="text-amber-300">{standupData?.policy.submissionDeadline || '10:30 AM'}</strong> (+{standupData?.policy.gracePeriodMins || 30}m grace period).
+              </p>
+            )}
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Button
+              variant="primary"
+              onClick={() => navigate('/attendance/standups')}
+              className="px-5 py-2.5 text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 flex items-center gap-2 cursor-pointer"
+            >
+              {standupData?.submission ? (
+                <>
+                  <Eye size={15} /> Open Standups Hub
+                </>
+              ) : (
+                <>
+                  <Send size={15} /> Submit Standup Now
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* ── 3. DYNAMIC KPI CARDS GRID ───────────────────────────────────────────── */}

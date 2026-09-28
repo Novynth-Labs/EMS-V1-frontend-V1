@@ -42,11 +42,21 @@ api.interceptors.response.use(
     const errorMessage = data?.error?.message || data?.message || error.message || 'An unexpected error occurred';
 
     if (status === 401) {
-      // Handle Unauthorized (Token Expired)
-      toast.error('Session expired. Please log in again.');
-      useAuthStore.getState().logout();
-      if (window.location.hash !== '#/login') {
-        window.location.hash = '#/login';
+      const configUrl = error.config?.url || '';
+      const isAuthEndpoint = configUrl.includes('/auth/login') || 
+                             configUrl.includes('/auth/2fa') || 
+                             configUrl.includes('/auth/forgot-password') || 
+                             configUrl.includes('/auth/reset-password');
+      
+      if (!isAuthEndpoint) {
+        const wasAuthenticated = useAuthStore.getState().isAuthenticated;
+        if (wasAuthenticated) {
+          toast.error('Session expired (1 day limit reached). Please log in again.');
+          useAuthStore.getState().logout();
+          if (window.location.hash !== '#/login') {
+            window.location.hash = '#/login';
+          }
+        }
       }
     } else if (status === 403) {
       // Handle Forbidden
