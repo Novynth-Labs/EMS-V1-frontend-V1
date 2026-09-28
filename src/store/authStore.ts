@@ -37,13 +37,10 @@ interface AuthState {
   role: UserRole | null;
   accessToken: string | null;
   isAuthenticated: boolean;
-  isTwoFactorRequired: boolean;
   isLockedOut: boolean;
-  devOtp: string | null; // DEV ONLY — never set in production
   
   // Actions
   loginSuccess: (token: string, user: User) => void;
-  requireTwoFactor: (userId: string, devOtp?: string) => void;
   setLockedOut: (locked: boolean) => void;
   completePasswordChange: () => void;
   logout: () => void;
@@ -57,28 +54,16 @@ export const useAuthStore = create<AuthState>()(
       role: null,
       accessToken: null,
       isAuthenticated: false,
-      isTwoFactorRequired: false,
       isLockedOut: false,
-      devOtp: null,
 
       loginSuccess: (token, user) => set({ 
         accessToken: token, 
         user: { ...user, role: normalizeRole(user.role) as UserRole },
         role: normalizeRole(user.role), 
         isAuthenticated: true, 
-        isTwoFactorRequired: false,
         isLockedOut: false 
       }),
       
-      requireTwoFactor: (userId, devOtp) => set({ 
-        accessToken: userId, // Store userId as temp "token" so verify2FA can read it
-        isTwoFactorRequired: true,
-        isAuthenticated: false,
-        isLockedOut: false,
-        devOtp: devOtp || null
-      }),
-      
-
       logout: () => set({ 
         user: null, 
         role: null,
@@ -101,7 +86,6 @@ export const useAuthStore = create<AuthState>()(
         role: state.role,
         accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
-        isTwoFactorRequired: state.isTwoFactorRequired,
         isLockedOut: state.isLockedOut
       }),
     }

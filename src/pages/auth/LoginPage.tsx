@@ -9,7 +9,7 @@ import { LogIn, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loginSuccess, requireTwoFactor, setLockedOut } = useAuthStore();
+  const { loginSuccess, setLockedOut } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -46,14 +46,8 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await loginWithEmail(email, password);
-
-      if (response.requires2FA) {
-        requireTwoFactor(response.userId || '', response.devOtp);
-        navigate('/2fa');
-      } else {
-        loginSuccess(response.token, response.user);
-        navigate(getRoleDashboardRoute(response.user.role));
-      }
+      loginSuccess(response.token, response.user);
+      navigate(getRoleDashboardRoute(response.user.role));
     } catch (err: any) {
       if (err.response?.status === 403 || err.response?.data?.locked) {
         setLockedOut(true);

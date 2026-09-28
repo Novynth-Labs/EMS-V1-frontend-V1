@@ -14,7 +14,6 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
-const TwoFactorPage = lazy(() => import('./pages/auth/TwoFactorPage').then(m => ({ default: m.TwoFactorPage })));
 const AccountLockedPage = lazy(() => import('./pages/auth/AccountLockedPage').then(m => ({ default: m.AccountLockedPage })));
 const ChangePasswordPage = lazy(() => import('./pages/auth/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
@@ -165,7 +164,6 @@ function App() {
         }>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/2fa" element={<TwoFactorPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/locked" element={<AccountLockedPage />} />

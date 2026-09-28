@@ -18,17 +18,6 @@ export const loginWithEmail = async (email: string, password: string) => {
   return response.data.data;
 };
 
-export const verify2FA = async (code: string) => {
-  const state = useAuthStore.getState();
-  const response = await api.post('/auth/2fa/verify', { userId: state.accessToken, token: code });
-  return response.data.data;
-};
-
-export const resendOTP = async () => {
-  const response = await api.post('/auth/2fa/resend');
-  return response.data;
-};
-
 export const checkAuthStatus = async () => {
   const token = useAuthStore.getState().accessToken;
   if (!token) return { isAuthenticated: false };
@@ -77,4 +66,3 @@ export const resetPassword = async (token: string, newPassword: string) => {
     throw err;
   }
 };
-
