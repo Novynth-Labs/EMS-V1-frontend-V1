@@ -233,6 +233,11 @@ export const updateTaskColumn = async (taskId: string, columnId: string) => {
   return response.data;
 };
 
+export const updateTaskGeneral = async (taskId: string, data: { title?: string; description?: string; deadline?: string; priority?: string }) => {
+  const response = await api.patch(`/tasks/${taskId}/general`, data);
+  return response.data.data;
+};
+
 export const getTaskDetails = async (taskId: string) => {
   const response = await api.get(`/tasks/${taskId}/details`);
   return response.data.data;

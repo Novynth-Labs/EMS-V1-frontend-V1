@@ -81,8 +81,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     {
       title: 'Requests',
       items: [
-        { label: 'My Requests', path: '/requests/my', icon: <FileText size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
-        { label: 'New Request', path: '/requests/new', icon: <PlusCircle size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
+        { label: 'My Requests', path: '/requests/my', icon: <FileText size={18} />, roles: ['*'] },
+        { label: 'New Request', path: '/requests/new', icon: <PlusCircle size={18} />, roles: ['*'] },
         { label: 'Approval Queue', path: '/requests/queue', icon: <GitPullRequest size={18} />, roles: ['Team Lead', 'Dept Head', 'HR', 'Super Admin'] },
         { label: 'System Requests', path: '/admin/requests', icon: <ClipboardList size={18} />, roles: ['Super Admin'] },
       ],
@@ -162,7 +162,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const visibleSections = allSections
     .map(section => ({
       ...section,
-      items: section.items.filter(item => item.roles.includes(role as string)),
+      items: section.items.filter(item => 
+        item.roles.includes('*') || 
+        item.roles.includes(role as string) || 
+        (role && item.roles.some(r => r.toLowerCase() === (role as string).toLowerCase()))
+      ),
     }))
     .filter(section => section.items.length > 0);
 

@@ -265,6 +265,12 @@ export const unlockStandupUser = async (userId: string, reason?: string) => {
   return res.data;
 };
 
+// 10b. Bulk Unlock All Users
+export const unlockAllStandupUsers = async (reason?: string) => {
+  const res = await api.post('/standups/unlock-all', { reason });
+  return res.data;
+};
+
 // 11. Trigger Compliance Check
 export const triggerStandupComplianceCheck = async () => {
   const res = await api.post('/standups/compliance-check');

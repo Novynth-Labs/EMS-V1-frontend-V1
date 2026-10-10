@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createProject } from '../../api/projects.api';
-import { getAllUsers } from '../../api/admin.api';
+import { getAllUsers, getDirectoryUsers } from '../../api/admin.api';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { CheckCircle, ArrowLeft, FolderKanban, Users, Shield, Layers, Sparkles } from 'lucide-react';
@@ -9,6 +10,7 @@ import { toast } from '../../utils/toast';
 
 export const CreateProjectPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [teamLeads, setTeamLeads] = useState<any[]>([]);
@@ -21,14 +23,67 @@ export const CreateProjectPage: React.FC = () => {
     visibility: 'private'
   });
 
+  const isDeptHead = 
+    ['DEPT_HEAD', 'Dept Head', 'Department Head'].includes(role || '') || 
+    ['DEPT_HEAD', 'Dept Head', 'Department Head'].includes(user?.role || '');
+
+  const userDept = (user?.department || '').trim();
+
+  // Filter team leads to Department Head's department if current user is Dept Head
+  const availableTeamLeads = React.useMemo(() => {
+    if (isDeptHead && userDept) {
+      const normalizedDept = userDept.toLowerCase();
+      const filtered = teamLeads.filter(u => {
+        const d = (u.department || '').trim().toLowerCase();
+        return d === normalizedDept || d.includes(normalizedDept) || normalizedDept.includes(d);
+      });
+      return filtered.length > 0 ? filtered : teamLeads;
+    }
+    return teamLeads;
+  }, [teamLeads, isDeptHead, userDept]);
+
+  // Sort so Team Leads appear first, then alphabetically
+  const sortedLeads = React.useMemo(() => {
+    return [...availableTeamLeads].sort((a, b) => {
+      const aIsLead = ['TEAM_LEAD', 'Team Lead'].includes(a.role || '');
+      const bIsLead = ['TEAM_LEAD', 'Team Lead'].includes(b.role || '');
+      if (aIsLead && !bIsLead) return -1;
+      if (!aIsLead && bIsLead) return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [availableTeamLeads]);
+
   useEffect(() => {
-    getAllUsers().then((users: any[]) => {
-      setTeamLeads(users);
-      if (users.length > 0) {
-        setSelectedTeamLeadId(users[0].id);
+    const fetchUsers = async () => {
+      try {
+        const users = await getAllUsers();
+        if (Array.isArray(users) && users.length > 0) {
+          setTeamLeads(users);
+        } else {
+          const dirUsers = await getDirectoryUsers();
+          setTeamLeads(dirUsers);
+        }
+      } catch (err) {
+        try {
+          const dirUsers = await getDirectoryUsers();
+          setTeamLeads(dirUsers);
+        } catch (dirErr) {
+          console.error('Failed to load team leads', dirErr);
+        }
       }
-    }).catch(err => console.error('Failed to load team leads', err));
+    };
+    fetchUsers();
   }, []);
+
+  // Sync selectedTeamLeadId if current selection is invalid or not in sorted list
+  useEffect(() => {
+    if (sortedLeads.length > 0) {
+      const exists = sortedLeads.some(u => String(u.id) === String(selectedTeamLeadId));
+      if (!selectedTeamLeadId || !exists) {
+        setSelectedTeamLeadId(String(sortedLeads[0].id));
+      }
+    }
+  }, [sortedLeads, selectedTeamLeadId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +188,16 @@ export const CreateProjectPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Project Team Lead *</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                    Project Team Lead *
+                  </label>
+                  {isDeptHead && userDept && (
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-full">
+                      {user?.department} Team
+                    </span>
+                  )}
+                </div>
                 <select 
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
@@ -141,10 +205,17 @@ export const CreateProjectPage: React.FC = () => {
                   onChange={(e) => setSelectedTeamLeadId(e.target.value)}
                 >
                   <option value="">Select Team Lead Owner</option>
-                  {teamLeads.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} — {u.department || 'General'}</option>
+                  {sortedLeads.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} {u.role ? `(${u.role})` : ''} — {u.department || 'General'}
+                    </option>
                   ))}
                 </select>
+                {isDeptHead && userDept && (
+                  <p className="text-[11px] text-slate-500 mt-1.5 font-medium">
+                    Showing members & team leads from your department (<span className="font-semibold text-slate-700">{user?.department}</span>).
+                  </p>
+                )}
               </div>
             </div>
 

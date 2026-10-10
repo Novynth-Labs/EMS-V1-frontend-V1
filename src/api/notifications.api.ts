@@ -23,3 +23,7 @@ export const getNotifications = async () => {
 export const markAsRead = async (id: string) => {
   await api.patch(`/notifications/${id}/read`);
 };
+
+export const markAllAsRead = async () => {
+  await api.patch('/notifications/read-all');
+};

@@ -12,6 +12,7 @@ import {
   updateStandupPolicy,
   grantStandupExemption,
   unlockStandupUser,
+  unlockAllStandupUsers,
   triggerStandupComplianceCheck,
   type TodayStandupStatusResponse,
   type MyStandupsResponse,
@@ -370,6 +371,16 @@ export const StandupsTrackerPage: React.FC = () => {
       loadExecutiveData(analyticsDate);
     } catch (err: any) {
       toast.error(err.response?.data?.error?.message || 'Failed to unlock user');
+    }
+  };
+
+  const handleUnlockAllUsers = async () => {
+    try {
+      const res = await unlockAllStandupUsers('Bulk unlock initiated from Standup Compliance Dashboard');
+      toast.success(res.message || 'All members unlocked successfully');
+      loadExecutiveData(analyticsDate);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error?.message || 'Failed to unlock all members');
     }
   };
 
@@ -2016,10 +2027,21 @@ export const StandupsTrackerPage: React.FC = () => {
           {/* Violators & At-Risk Employees */}
           {analyticsData && analyticsData.violators && analyticsData.violators.length > 0 && (
             <div className="novynth-card p-5 border border-rose-300 dark:border-rose-800 bg-rose-500/5 space-y-4">
-              <h4 className="text-sm font-bold text-rose-950 dark:text-rose-200 flex items-center gap-2">
-                <ShieldAlert size={18} className="text-rose-600" />
-                Compliance Violations & Locked Accounts ({analyticsData.violators.length})
-              </h4>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h4 className="text-sm font-bold text-rose-950 dark:text-rose-200 flex items-center gap-2">
+                  <ShieldAlert size={18} className="text-rose-600" />
+                  Compliance Violations & Locked Accounts ({analyticsData.violators.length})
+                </h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-emerald-600 text-emerald-700 bg-emerald-50/80 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
+                  onClick={handleUnlockAllUsers}
+                >
+                  <Unlock size={13} className="mr-1.5 text-emerald-600" />
+                  Unlock All Members
+                </Button>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-[var(--color-text-secondary)]">
                   <thead className="bg-rose-100/50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold border-b border-rose-200 text-xs">

@@ -5,6 +5,7 @@ import { socket } from '../../services/socket';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from '../../utils/toast';
 import { getInitials } from '../../utils/initials';
+import { playNotificationSound } from '../../utils/sound';
 
 // ── Ringtone synthesizer ──────────────────────────────────────
 // ── Ringtone — plays /public/mixkit-waiting-ringtone-1354.wav ─
@@ -155,6 +156,9 @@ export const IncomingCallOverlay: React.FC = () => {
 
     const handleGlobalNewMessage = (data: { channelId: string; senderName: string; content: string }) => {
       const isOnMessagesPage = window.location.pathname.startsWith('/messages');
+
+      // Play audio chime
+      playNotificationSound();
 
       // Always show in-app toast when not on messages page
       if (!isOnMessagesPage) {

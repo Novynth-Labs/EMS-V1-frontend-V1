@@ -3,6 +3,7 @@ import { Menu, Bell, Search, LogOut, User, Settings, ChevronRight, Download, Spa
 import { useAuthStore } from '../../store/authStore';
 import { useActivity, type ActivityState } from '../../contexts/ActivityContext';
 import { NotificationInbox } from '../notifications/NotificationInbox';
+import { getNotifications } from '../../api/notifications.api';
 import { CommandPalette } from '../ui/CommandPalette';
 import { AppUpdaterModal } from '../common/AppUpdaterModal';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
@@ -22,10 +23,32 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showUpdaterModal, setShowUpdaterModal] = useState(false);
   const [hasUpdateReady, setHasUpdateReady] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const navigate = useNavigate();
   const location = useLocation();
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const refreshUnread = useCallback(async () => {
+    try {
+      const data = await getNotifications();
+      const count = Array.isArray(data) ? data.filter((n: any) => !n.isRead).length : 0;
+      setUnreadCount(count);
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
+    refreshUnread();
+    const handleNotificationUpdate = () => {
+      refreshUnread();
+    };
+    window.addEventListener('ems:notification', handleNotificationUpdate);
+    window.addEventListener('ems:notifications-read', handleNotificationUpdate);
+    return () => {
+      window.removeEventListener('ems:notification', handleNotificationUpdate);
+      window.removeEventListener('ems:notifications-read', handleNotificationUpdate);
+    };
+  }, [refreshUnread]);
 
   // Listen for background desktop update status
   useEffect(() => {
@@ -167,7 +190,11 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
               aria-label="Notifications"
             >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
+              {unreadCount > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-pulse shadow-sm">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              ) : null}
             </button>
             
             {showNotifications && (
