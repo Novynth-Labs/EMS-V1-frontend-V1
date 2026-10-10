@@ -1,3 +1,5 @@
+import { io, Socket } from 'socket.io-client';
+
 const getAuthToken = () => {
   try {
     const raw = localStorage.getItem('auth-storage');
