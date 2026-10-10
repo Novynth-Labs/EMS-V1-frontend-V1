@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Menu, Bell, Search, LogOut, User, Settings, ChevronRight, Download, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useActivity, type ActivityState } from '../../contexts/ActivityContext';
