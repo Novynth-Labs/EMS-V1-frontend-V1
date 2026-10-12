@@ -666,7 +666,7 @@ const SessionSyncManager = ({ roomId }: { roomId: string }) => {
       setConnectionStatus('connected');
     } else if (connectionState === ConnectionState.Reconnecting) {
       setConnectionStatus('reconnecting');
-      toast.warn('Reconnecting to meeting audio/video...');
+      toast.warning('Reconnecting to meeting audio/video...');
     } else if (connectionState === ConnectionState.Connecting) {
       setConnectionStatus('connecting');
     } else if (connectionState === ConnectionState.Disconnected) {

@@ -21,6 +21,7 @@ export interface Project {
   creatorId: string;
   teamLeadId?: string;
   teamLeadName?: string;
+  groupId?: string;
   channelId?: string;
   template?: string;
   visibility?: 'public' | 'private' | 'department' | 'organization';
@@ -37,14 +38,19 @@ export interface Project {
 }
 
 export type TaskStatus = 'To Do' | 'In Progress' | 'Review' | 'Done';
-export type TaskPriority = 'Low' | 'Medium' | 'High';
+export type TaskPriority = 'Low' | 'Medium' | 'High' | 'URGENT';
 
 export interface ProjectTask {
   id: string;
+  projectId?: string;
+  projectName?: string;
   title: string;
+  description?: string;
   status: TaskStatus;
   priority: TaskPriority;
   deadline: string;
+  createdAt?: string;
+  startDate?: string;
   assigneeName?: string;
   assigneeId?: string;
   sprintId?: string;
@@ -104,16 +110,19 @@ export const getProjects = async (includeArchived = false) => {
   return mapped;
 };
 
-export const getProjectDetails = async (id: string) => {
+export const getProjectDetails = async (id: string): Promise<Project> => {
   const res = await api.get(`/projects/${id}`);
   const p = res.data.data;
+  const effectiveGroupId = p.groupId || p.group_id || p.channelId || p.channel_id;
   return {
     ...p,
-    title: p.name,
-    stage: mapStage(p.status),
-    creatorId: p.creatorId,
-    teamLeadId: p.teamLeadId,
+    title: p.name || p.title || 'Untitled Project',
+    stage: mapStage(p.status || p.stage),
+    creatorId: p.creatorId || p.creator_id,
+    teamLeadId: p.teamLeadId || p.team_lead_id,
     teamLeadName: p.teamLeadName,
+    groupId: effectiveGroupId ? String(effectiveGroupId) : undefined,
+    channelId: effectiveGroupId ? String(effectiveGroupId) : undefined,
     members: (p.members || []).map((m: any) => ({
       ...m,
       contributionRate: Math.floor(Math.random() * 30) + 70 // Generated UI value
@@ -122,19 +131,23 @@ export const getProjectDetails = async (id: string) => {
   };
 };
 
-export const createProject = async (data: { title: string; description: string; stage: ProjectStage; teamLeadId?: string; template?: string; visibility?: string }) => {
+export const createProject = async (data: { title: string; description: string; stage?: ProjectStage; teamLeadId?: string; template?: string; visibility?: string; memberIds?: string[] }) => {
   const res = await api.post('/projects', {
     name: data.title,
     description: data.description,
     teamLeadId: data.teamLeadId,
     template: data.template,
-    visibility: data.visibility
+    visibility: data.visibility,
+    memberIds: data.memberIds || []
   });
   const p = res.data.data;
+  const effectiveGroupId = p.groupId || p.group_id || p.channelId || p.channel_id;
   return {
     ...p,
     title: p.name,
-    stage: mapStage(p.status)
+    stage: mapStage(p.status),
+    groupId: effectiveGroupId ? String(effectiveGroupId) : undefined,
+    channelId: effectiveGroupId ? String(effectiveGroupId) : undefined,
   };
 };
 
@@ -229,9 +242,52 @@ export const updateTaskAssignee = async (taskId: string, assigneeId: string) => 
   return response.data.data;
 };
 
-export const getMyTasks = async () => {
-  const response = await api.get('/tasks/me');
-  return response.data.data;
+export const getMyTasks = async (params?: any): Promise<ProjectTask[]> => {
+  const response = await api.get('/tasks/me', { params });
+  const items = Array.isArray(response.data?.data) ? response.data.data : [];
+  return items.map((t: any) => ({
+    ...t,
+    deadline: t.deadline ? t.deadline.split('T')[0] : 'No deadline',
+    createdAt: t.createdAt || t.created_at || null,
+    startDate: t.startDate || t.start_date || t.createdAt || null,
+    priority: (t.priority || 'Medium').charAt(0).toUpperCase() + (t.priority || 'Medium').slice(1).toLowerCase(),
+    status: (t.status === 'DONE' || t.status === 'Done'
+      ? 'Done'
+      : t.status === 'IN_PROGRESS' || t.status === 'In Progress'
+      ? 'In Progress'
+      : t.status === 'REVIEW' || t.status === 'Review'
+      ? 'Review'
+      : 'To Do') as TaskStatus,
+  }));
+};
+
+export const getAllTasks = async (params?: any): Promise<ProjectTask[]> => {
+  const response = await api.get('/tasks', { params });
+  const items = Array.isArray(response.data?.data) ? response.data.data : [];
+  return items.map((t: any) => ({
+    ...t,
+    deadline: t.deadline ? t.deadline.split('T')[0] : 'No deadline',
+    createdAt: t.createdAt || t.created_at || null,
+    startDate: t.startDate || t.start_date || t.createdAt || null,
+    priority: (t.priority || 'Medium').charAt(0).toUpperCase() + (t.priority || 'Medium').slice(1).toLowerCase(),
+    status: (t.status === 'DONE' || t.status === 'Done'
+      ? 'Done'
+      : t.status === 'IN_PROGRESS' || t.status === 'In Progress'
+      ? 'In Progress'
+      : t.status === 'REVIEW' || t.status === 'Review'
+      ? 'Review'
+      : 'To Do') as TaskStatus,
+  }));
+};
+
+export const updateTask = async (taskId: string, data: Partial<ProjectTask>) => {
+  const payload: any = {};
+  if (data.title) payload.title = data.title;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.deadline) payload.deadline = data.deadline;
+  if (data.priority) payload.priority = (data.priority as string).toUpperCase();
+  const response = await api.patch(`/tasks/${taskId}/general`, payload);
+  return response.data?.data || response.data;
 };
 
 export const createTask = async (projectId: string, data: Partial<ProjectTask>) => {

@@ -15,6 +15,7 @@ export const CreateProjectPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [teamLeads, setTeamLeads] = useState<any[]>([]);
   const [selectedTeamLeadId, setSelectedTeamLeadId] = useState('');
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -96,8 +97,10 @@ export const CreateProjectPage: React.FC = () => {
     try {
       const newProj = await createProject({
         ...formData,
-        teamLeadId: selectedTeamLeadId || undefined
+        teamLeadId: selectedTeamLeadId || undefined,
+        memberIds: selectedMemberIds,
       });
+      toast.success('Workspace & discussion group provisioned successfully!');
       setSuccess(true);
       
       // Auto-navigate to details page
@@ -216,6 +219,45 @@ export const CreateProjectPage: React.FC = () => {
                     Showing members & team leads from your department (<span className="font-semibold text-slate-700">{user?.department}</span>).
                   </p>
                 )}
+              </div>
+            </div>
+
+            {/* Team Members Assignment */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                  Initial Team Members ({selectedMemberIds.length} selected)
+                </label>
+                <span className="text-[11px] text-slate-400 font-medium">Auto-synced to Project Discussion Group</span>
+              </div>
+              <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 bg-slate-50/60 rounded-2xl border border-slate-200">
+                {teamLeads.map((u) => {
+                  const isLead = String(u.id) === String(selectedTeamLeadId);
+                  const isSelected = selectedMemberIds.includes(String(u.id));
+                  return (
+                    <button
+                      key={u.id}
+                      type="button"
+                      disabled={isLead}
+                      onClick={() => {
+                        const uid = String(u.id);
+                        setSelectedMemberIds((prev) =>
+                          prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+                        );
+                      }}
+                      className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                        isLead
+                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-not-allowed opacity-80'
+                          : isSelected
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      <span>{u.name} {isLead ? '(Lead)' : ''}</span>
+                      {isSelected && !isLead && <span>✓</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

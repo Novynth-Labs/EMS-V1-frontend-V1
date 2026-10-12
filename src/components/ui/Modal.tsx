@@ -33,7 +33,6 @@ export const Modal: React.FC<ModalProps> = ({
       previousActiveElement.current = document.activeElement as HTMLElement;
       document.body.style.overflow = 'hidden';
 
-      // Auto focus container or first input on initial open only
       const timer = setTimeout(() => {
         if (modalRef.current) {
           const focusable = modalRef.current.querySelectorAll<HTMLElement>(
@@ -53,7 +52,6 @@ export const Modal: React.FC<ModalProps> = ({
           return;
         }
 
-        // Focus trap logic
         if (e.key === 'Tab' && modalRef.current) {
           const focusables = Array.from(
             modalRef.current.querySelectorAll<HTMLElement>(
@@ -104,43 +102,44 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 transition-opacity animate-fade-in" 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 transition-opacity animate-fade-in" 
       onClick={closeOnBackdropClick ? onClose : undefined}
     >
       <div 
         ref={modalRef}
         tabIndex={-1}
-        className={`bg-white rounded-2xl shadow-2xl border border-slate-100 w-full ${sizeClasses[size]} animate-scale-in outline-none overflow-hidden`}
+        className={`bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full ${sizeClasses[size]} animate-scale-in outline-none overflow-hidden max-h-[92vh] flex flex-col`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
         aria-describedby={subtitle ? 'modal-subtitle' : undefined}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-slate-100 bg-slate-50/50">
-          <div>
+        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+          <div className="pr-4">
             <h2 id="modal-title" className="text-lg font-bold text-slate-900 tracking-tight">
               {title}
             </h2>
             {subtitle && (
-              <p id="modal-subtitle" className="text-xs text-slate-500 font-medium mt-0.5">
+              <p id="modal-subtitle" className="text-xs text-slate-500 font-normal mt-0.5">
                 {subtitle}
               </p>
             )}
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             aria-label="Close modal"
           >
             <X size={18} />
           </button>
         </div>
-        <div className="px-6 py-5 overflow-y-auto max-h-[75vh]">
+        <div className="px-6 py-5 overflow-y-auto flex-1">
           {children}
         </div>
       </div>
     </div>
   );
 };
+
 

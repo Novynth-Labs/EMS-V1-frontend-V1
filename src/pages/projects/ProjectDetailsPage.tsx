@@ -378,9 +378,19 @@ export const ProjectDetailsPage: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <Button variant="secondary" onClick={() => navigate('/messages')} className="flex items-center gap-2 bg-white hover:bg-slate-50 shadow-sm hover:shadow-md border border-slate-200 text-slate-700 transition-all duration-300 hover:-translate-y-0.5 rounded-xl font-bold px-5 py-2.5">
-            <MessageCircle size={18} className="text-indigo-500" /> Open Chat
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              const gid = project.groupId || project.channelId;
+              if (gid) {
+                navigate(`/messages?channel=${gid}`);
+              } else {
+                navigate('/messages');
+              }
+            }} 
+            className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 shadow-sm hover:shadow-md border border-indigo-200 text-indigo-700 transition-all duration-300 hover:-translate-y-0.5 rounded-xl font-bold px-5 py-2.5"
+          >
+            <MessageCircle size={18} className="text-indigo-600" /> Project Discussion 💬
           </Button>
           {isAllowedToAddTask && !project.archived_at && (
             <Button variant="primary" onClick={() => setTaskModal(true)} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/50 transition-all duration-300 hover:-translate-y-0.5 rounded-xl text-white border-0 font-bold px-6 py-2.5">

@@ -173,10 +173,17 @@ export const MeetingRoom: React.FC = () => {
   useEffect(() => {
     if (!user || !roomId) return;
 
+    const authToken = useAuthStore.getState().accessToken || localStorage.getItem('token');
+
     socketRef.current = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
       path: '/ws/meeting',
+      transports: ['polling', 'websocket'],
+      auth: { token: authToken },
+      query: { token: authToken || '' },
       autoConnect: true,
-      withCredentials: true
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
     });
 
     const initMedia = async () => {
@@ -430,6 +437,12 @@ export const MeetingRoom: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isChatOpen]);
 
+  const remoteIds = Array.from(new Set([
+    ...Object.keys(remoteStreams),
+    ...Object.keys(remoteParticipantLabels),
+    ...Object.keys(remoteMediaStates),
+  ]));
+
   const allParticipants = [
     {
       id: 'local',
@@ -437,11 +450,12 @@ export const MeetingRoom: React.FC = () => {
       label: user?.name || 'You',
       isMuted, isVideoOff, isHandRaised
     },
-    ...Object.entries(remoteStreams).map(([id, stream]) => ({
-      id, stream,
-      label: remoteParticipantLabels[id] || 'Participant',
+    ...remoteIds.map(id => ({
+      id,
+      stream: remoteStreams[id] as MediaStream | undefined,
+      label: remoteParticipantLabels[id] || `Colleague (${id.slice(0, 4)})`,
       isMuted: remoteMediaStates[id]?.isMuted || false,
-      isVideoOff: remoteMediaStates[id]?.isVideoOff || false,
+      isVideoOff: remoteMediaStates[id]?.isVideoOff ?? (remoteStreams[id] ? false : true),
       isHandRaised: remoteMediaStates[id]?.isHandRaised || false,
     }))
   ];
@@ -531,8 +545,13 @@ export const MeetingRoom: React.FC = () => {
             >
               {spotlightedItem.id === 'local' ? (
                 <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
-              ) : (
+              ) : spotlightedItem.stream ? (
                 <VideoPlayer stream={spotlightedItem.stream} className="w-full h-full object-contain" isRemoteMuted={spotlightedItem.isMuted} />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-950/80">
+                  <Avatar name={spotlightedItem.label} className="w-20 h-20 text-xl rounded-3xl bg-indigo-600 ring-2 ring-white/10" />
+                  <span className="text-sm text-white/80 mt-3 font-medium">{spotlightedItem.label}</span>
+                </div>
               )}
 
               {/* Gradient overlay bottom */}
@@ -542,7 +561,7 @@ export const MeetingRoom: React.FC = () => {
 
               {/* Name label */}
               <div className="absolute bottom-5 left-5 flex items-center gap-2.5 transition-all duration-300">
-                <Avatar name={spotlightedItem.label} avatarUrl={spotlightedItem.user?.avatarUrl} className="w-9 h-9 text-xs rounded-2xl bg-gradient-to-br ring-2 ring-white/10" />
+                <Avatar name={spotlightedItem.label} className="w-9 h-9 text-xs rounded-2xl bg-gradient-to-br ring-2 ring-white/10" />
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{spotlightedItem.label}</p>
                   {joinedMember && spotlightedItem.id !== 'local' && spotlightedItem.label === joinedMember && (
@@ -600,8 +619,13 @@ export const MeetingRoom: React.FC = () => {
               >
                 {item.id === 'local' ? (
                   <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                ) : (
+                ) : item.stream ? (
                   <VideoPlayer stream={item.stream} className="w-full h-full object-cover" isRemoteMuted={item.isMuted} />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-950/80">
+                    <Avatar name={item.label} className="w-14 h-14 text-base rounded-2xl bg-indigo-600 ring-2 ring-white/10" />
+                    <span className="text-xs text-white/80 mt-2 font-medium">{item.label}</span>
+                  </div>
                 )}
 
                 {/* Bottom gradient */}
@@ -611,7 +635,7 @@ export const MeetingRoom: React.FC = () => {
 
                 {/* Name tag */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-                  <Avatar name={item.label} avatarUrl={item.user?.avatarUrl} className="w-6 h-6 text-[9px] rounded-xl bg-gradient-to-br ring-1 ring-white/10" />
+                  <Avatar name={item.label} className="w-6 h-6 text-[9px] rounded-xl bg-gradient-to-br ring-1 ring-white/10" />
                   <span className="text-[11px] font-bold text-white/90 max-w-[80px] truncate">{item.label}</span>
                   {item.isMuted && <MicOff size={11} className="text-rose-400 shrink-0" />}
                 </div>

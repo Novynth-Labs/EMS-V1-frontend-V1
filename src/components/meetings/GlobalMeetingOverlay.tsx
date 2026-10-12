@@ -14,13 +14,13 @@ export const GlobalMeetingOverlay: React.FC = () => {
     return null;
   }
 
-  // Determine if the user is currently on the full meeting view route
+  // When user is directly on the meeting route, MeetingRoomPage is actively rendering the full MeetingRoom
   const isMeetingRoute =
-    (location.pathname.startsWith('/meeting/') || location.pathname.startsWith('/meetings/')) &&
-    location.pathname.includes(activeMeetingId);
+    location.pathname.startsWith('/meeting/') || location.pathname.startsWith('/meetings/');
 
-  // Full view is shown when user is explicitly on the meeting route and has not minimized it
-  const showFullView = isMeetingRoute && !isMinimized;
+  if (!activeMeetingId || isMeetingRoute) {
+    return null;
+  }
 
   return (
     <div
