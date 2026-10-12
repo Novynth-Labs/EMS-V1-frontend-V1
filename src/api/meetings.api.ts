@@ -82,3 +82,8 @@ export const downloadCalendarInvite = async (id: string) => {
   URL.revokeObjectURL(url);
 };
 
+export const getMeetingToken = async (id: string) => {
+  const response = await api.get(`/meetings/${id}/token`);
+  return response.data;
+};
+

@@ -1,3 +1,5 @@
+
+
 import api from './axios';
 
 export type ProjectStage = 'Plan' | 'Dev' | 'Test' | 'Deploy' | 'Closed';
@@ -63,12 +65,43 @@ const mapStage = (dbStatus: string): ProjectStage => {
 export const getProjects = async (includeArchived = false) => {
   const res = await api.get(`/projects${includeArchived ? '?archived=true' : ''}`);
   const items = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
-  return items.map((p: any) => ({
+  const mapped = items.map((p: any) => ({
     ...p,
     title: p.name,
     stage: mapStage(p.status),
-    members: p.members || []
+    members: Array.isArray(p.members) ? p.members : []
   }));
+
+  // If projects don't have members populated from the endpoint, fetch project details in parallel
+  // so the dashboard cards immediately reflect the real assigned members and accurate counts.
+  const needsMemberFetch = mapped.some((p: any) => !p.members || p.members.length === 0);
+  if (needsMemberFetch && mapped.length > 0) {
+    try {
+      const detailsList = await Promise.allSettled(
+        mapped.map((p: any) =>
+          (Array.isArray(p.members) && p.members.length > 0)
+            ? Promise.resolve({ members: p.members })
+            : api.get(`/projects/${p.id}`).then(r => r.data?.data).catch(() => null)
+        )
+      );
+
+      return mapped.map((p: any, idx: number) => {
+        const result = detailsList[idx];
+        const detail = result.status === 'fulfilled' ? result.value : null;
+        const realMembers = (detail?.members && Array.isArray(detail.members) && detail.members.length > 0)
+          ? detail.members
+          : (p.members || []);
+        return {
+          ...p,
+          members: realMembers
+        };
+      });
+    } catch {
+      return mapped;
+    }
+  }
+
+  return mapped;
 };
 
 export const getProjectDetails = async (id: string) => {

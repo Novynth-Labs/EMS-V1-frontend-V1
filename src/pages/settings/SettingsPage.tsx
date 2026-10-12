@@ -16,7 +16,7 @@ export const SettingsPage: React.FC = () => {
     version: CURRENT_VERSION,
     winUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
     linuxUrl: DIRECT_LINUX_DOWNLOAD_URL,
-    releaseUrl: 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+    releaseUrl: 'https://github.com/Novynth-Labs/EMS-V1-frontend-V1/releases/latest',
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const SettingsPage: React.FC = () => {
         version: info.version,
         winUrl: info.windowsInstallerUrl || DIRECT_WINDOWS_DOWNLOAD_URL,
         linuxUrl: info.linuxAppImageUrl || DIRECT_LINUX_DOWNLOAD_URL,
-        releaseUrl: info.htmlUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+        releaseUrl: info.htmlUrl || 'https://github.com/Novynth-Labs/EMS-V1-frontend-V1/releases/latest',
       });
     }).catch(() => {});
   }, []);
@@ -178,7 +178,7 @@ export const SettingsPage: React.FC = () => {
                   <p className="text-xs text-slate-500">Official Windows NSIS setup package with auto-update integration.</p>
                   <div className="pt-1">
                     <a
-                      href={releaseInfo?.winUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest'}
+                      href={releaseInfo?.winUrl || 'https://github.com/Novynth-Labs/EMS-V1-frontend-V1/releases/latest'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
@@ -199,7 +199,7 @@ export const SettingsPage: React.FC = () => {
                   <p className="text-xs text-slate-500">Universal Linux AppImage executable for Ubuntu, Fedora, Debian & Arch.</p>
                   <div className="pt-1">
                     <a
-                      href={releaseInfo?.linuxUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest'}
+                      href={releaseInfo?.linuxUrl || 'https://github.com/Novynth-Labs/EMS-V1-frontend-V1/releases/latest'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block text-center py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"

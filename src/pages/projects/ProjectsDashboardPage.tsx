@@ -290,7 +290,7 @@ export const ProjectsDashboardPage: React.FC = () => {
         {/* Projects Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(proj => {
-            const memberCount = proj.members?.length || 0;
+            const memberCount = (Array.isArray(proj.members) ? proj.members.length : 0) || (proj as any).memberCount || 0;
             const healthColor = 
               proj.health === 'at_risk' ? 'bg-amber-500' :
               proj.health === 'off_track' ? 'bg-rose-500' : 'bg-emerald-500';
@@ -342,7 +342,25 @@ export const ProjectsDashboardPage: React.FC = () => {
                     <div className="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-[10px]">
                       {memberCount}
                     </div>
-                    <span>Members</span>
+                    <span>{memberCount === 1 ? 'Member' : 'Members'}</span>
+                    {proj.members && proj.members.length > 0 && (
+                      <div className="flex -space-x-1.5 ml-1 overflow-hidden" title={proj.members.map((m: any) => m.name).join(', ')}>
+                        {proj.members.slice(0, 3).map((m: any, idx: number) => (
+                          <div
+                            key={m.id || idx}
+                            title={`${m.name} (${m.role || 'Member'})`}
+                            className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-white shadow-xs"
+                          >
+                            {getInitials(m.name || '')}
+                          </div>
+                        ))}
+                        {proj.members.length > 3 && (
+                          <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[8px] font-bold flex items-center justify-center ring-1 ring-white shadow-xs">
+                            +{proj.members.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">

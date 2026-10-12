@@ -123,18 +123,7 @@ function DeepLinkListener() {
   return null;
 }
 
-function MeetingRouteHandler() {
-  const { id } = useParams<{ id: string }>();
-  const joinMeeting = useMeetingStore(state => state.joinMeeting);
-  
-  useEffect(() => {
-    if (id) {
-      joinMeeting(id);
-    }
-  }, [id, joinMeeting]);
-
-  return <Navigate to="/dashboard" replace />;
-}
+const MeetingRoomPage = lazy(() => import('./pages/meetings/MeetingRoomPage').then(m => ({ default: m.MeetingRoomPage })));
 
 function App() {
   const { isAuthenticated, user, updateUser } = useAuthStore();
@@ -204,7 +193,8 @@ function App() {
 
                 {/* Meetings Route */}
                 <Route path="/meetings" element={<MeetingsPage />} />
-                <Route path="/meeting/:id" element={<MeetingRouteHandler />} />
+                <Route path="/meeting/:id" element={<MeetingRoomPage />} />
+                <Route path="/meetings/:id" element={<MeetingRoomPage />} />
 
                 {/* Projects Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'Dept Head', 'Team Lead', 'HR', 'CEO', 'CTO']} />}>

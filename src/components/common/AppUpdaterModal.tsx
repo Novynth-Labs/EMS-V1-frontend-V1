@@ -110,7 +110,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   const displayVersion = releaseInfo?.version || targetVersion || CURRENT_VERSION;
   const winUrl = releaseInfo?.windowsInstallerUrl || getDirectWindowsDownloadUrl(displayVersion);
   const linuxUrl = releaseInfo?.linuxAppImageUrl || getDirectLinuxDownloadUrl(displayVersion);
-  const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases`;
+  const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Novynth-Labs/EMS-V1-frontend-V1/releases`;
   const hasReleaseAsset = true;
 
   if (!isOpen) return null;

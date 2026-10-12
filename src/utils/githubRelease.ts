@@ -15,7 +15,7 @@ export interface LatestReleaseInfo {
   assets: ReleaseAsset[];
 }
 
-const GITHUB_OWNER = 'Tejaspadaki';
+const GITHUB_OWNER = 'Novynth-Labs';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
 export const CURRENT_VERSION = '2.1.2';
 
