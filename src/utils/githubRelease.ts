@@ -17,7 +17,7 @@ export interface LatestReleaseInfo {
 
 const GITHUB_OWNER = 'Novynth-Labs';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
-export const CURRENT_VERSION = '2.1.2';
+export const CURRENT_VERSION = '2.1.3';
 
 export const getBackendBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL;
