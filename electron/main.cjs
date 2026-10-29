@@ -1,10 +1,18 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 const config = require('./config/index.cjs');
 const { registerSystemIPCHandlers } = require('./ipc/system.cjs');
 const { initAutoUpdater } = require('./updater.cjs');
+
+// Linux display server & graphics optimizations
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
+  if (process.argv.includes('--disable-gpu')) {
+    app.disableHardwareAcceleration();
+  }
+}
 
 let mainWindow;
 
@@ -21,20 +29,32 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(config.PROTOCOL_SCHEME);
 }
 
-
-
 function createWindow() {
+  const iconPath = path.join(__dirname, '../build/icon.png');
+  const hasIcon = fs.existsSync(iconPath);
+
+  // Disable default native menu bar (prevents clunky File/Edit/View menu on Linux)
+  Menu.setApplicationMenu(null);
+
   mainWindow = new BrowserWindow({
     width: config.WINDOW_DEFAULTS.width,
     height: config.WINDOW_DEFAULTS.height,
     minWidth: config.WINDOW_DEFAULTS.minWidth,
     minHeight: config.WINDOW_DEFAULTS.minHeight,
     title: config.WINDOW_DEFAULTS.title,
+    icon: hasIcon ? iconPath : undefined,
+    autoHideMenuBar: true,
+    show: false,
+    backgroundColor: '#F1F5F9',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs')
     }
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
   });
 
   // Handle window open requests (deep links, external links, internal route clicks)

@@ -55,6 +55,14 @@ linux:
   category: Office
   maintainer: "Novynth Labs Pvt Ltd <novynthlabs@gmail.com>"
   synopsis: Novynth Workflow Desktop Application
+  desktop:
+    Name: Novynth Workflow
+    Comment: Novynth Workflow Desktop Application
+    Exec: novynth-workflow %U --no-sandbox
+    Terminal: false
+    Type: Application
+    Icon: novynth-workflow
+    StartupWMClass: novynth-workflow
   target:
     - target: AppImage
       arch:

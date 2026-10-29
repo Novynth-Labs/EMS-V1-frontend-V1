@@ -42,6 +42,12 @@ export const AppLayout: React.FC = () => {
         onClose={() => setIsCommandPaletteOpen(false)} 
       />
       <Sidebar collapsed={sidebarCollapsed} />
+      {!sidebarCollapsed && (
+        <div 
+          className="novynth-sidebar-backdrop" 
+          onClick={() => setSidebarCollapsed(true)} 
+        />
+      )}
       <Topbar onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} sidebarCollapsed={sidebarCollapsed} />
       
       <main className={`novynth-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
