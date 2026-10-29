@@ -24,7 +24,9 @@ export interface ElectronAPI {
   onNavigate: (callback: (path: string) => void) => (() => void) | void;
   openDialog: (options: any) => Promise<any>;
   saveDialog: (options: any) => Promise<any>;
-  showNotification: (options: { title: string; body: string }) => void;
+  showNotification: (options: { title: string; body: string; route?: string; silent?: boolean }) => void;
+  showIncomingCallNotification: (options: { title: string; body: string; route?: string }) => void;
+  dismissIncomingCall: () => void;
   getSystemInfo: () => Promise<SystemInfo>;
   checkForUpdates: () => Promise<{ success: boolean; version?: string; error?: string }>;
   quitAndInstall: () => Promise<void>;

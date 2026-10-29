@@ -1,8 +1,12 @@
 const { ipcMain, dialog, Notification, BrowserWindow, app } = require('electron');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 
 function registerSystemIPCHandlers() {
+  const iconPath = path.join(__dirname, '../../build/icon.png');
+  const hasIcon = fs.existsSync(iconPath);
+
   // IPC handle for Open File / Folder Dialog
   ipcMain.handle('dialog:open', async (event, options) => {
     const result = await dialog.showOpenDialog(options);
@@ -15,35 +19,26 @@ function registerSystemIPCHandlers() {
     return result;
   });
 
-  // IPC handle for OS Native Notification
-  ipcMain.on('notification:show', (event, { title, body }) => {
-    if (Notification.isSupported()) {
-      new Notification({ title, body }).show();
-    }
-  });
-
-  // IPC handle for Incoming Call — shows native notification + flashes taskbar
-  ipcMain.on('incoming-call:show', (event, { title, body, route }) => {
+  // IPC handle for OS Native Notification (Messages & General)
+  ipcMain.on('notification:show', (event, { title, body, route, silent = false }) => {
     const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
 
-    // Flash the taskbar/dock icon to get attention
-    if (win) {
+    // Subtle taskbar flash if app is in background
+    if (win && !win.isFocused()) {
       win.flashFrame(true);
-      // Stop flashing when user focuses the window
       win.once('focus', () => win.flashFrame(false));
     }
 
-    // Show native OS notification
     if (Notification.isSupported()) {
       const notification = new Notification({
         title,
         body,
-        urgency: 'critical',
-        timeoutType: 'never',
-        silent: false,
+        icon: hasIcon ? iconPath : undefined,
+        silent: Boolean(silent),
+        urgency: 'normal'
       });
 
-      // When the user clicks the notification, focus the window and navigate
+      // When user clicks the OS notification: bring app to front and navigate
       notification.on('click', () => {
         if (win) {
           if (win.isMinimized()) win.restore();
@@ -60,10 +55,67 @@ function registerSystemIPCHandlers() {
     }
   });
 
-  // IPC for dismissing flash (call declined/missed)
+  // IPC handle for Incoming Call — pops up window on desktop, flashes taskbar, native critical notification
+  ipcMain.on('incoming-call:show', (event, { title, body, route }) => {
+    const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+
+    // Force window to popup in front of other apps on desktop
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.setAlwaysOnTop(true, 'screen-saver');
+      win.focus();
+
+      // Release always-on-top after 4s so user isn't trapped once noticed
+      setTimeout(() => {
+        if (!win.isDestroyed()) {
+          win.setAlwaysOnTop(false);
+        }
+      }, 4000);
+
+      win.flashFrame(true);
+      win.once('focus', () => {
+        win.flashFrame(false);
+        win.setAlwaysOnTop(false);
+      });
+    }
+
+    // Show native OS notification with critical priority
+    if (Notification.isSupported()) {
+      const notification = new Notification({
+        title,
+        body,
+        icon: hasIcon ? iconPath : undefined,
+        urgency: 'critical',
+        timeoutType: 'never',
+        silent: false,
+      });
+
+      // When user clicks the incoming call notification, focus window and navigate to room
+      notification.on('click', () => {
+        if (win) {
+          if (win.isMinimized()) win.restore();
+          win.show();
+          win.focus();
+          win.flashFrame(false);
+          win.setAlwaysOnTop(false);
+          if (route) {
+            win.webContents.send('navigate', route);
+          }
+        }
+      });
+
+      notification.show();
+    }
+  });
+
+  // IPC for dismissing flash (call declined/missed/accepted)
   ipcMain.on('incoming-call:dismiss', () => {
     const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
-    if (win) win.flashFrame(false);
+    if (win) {
+      win.flashFrame(false);
+      win.setAlwaysOnTop(false);
+    }
   });
 
   // IPC handle for System Information & Paths

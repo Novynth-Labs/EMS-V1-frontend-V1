@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { getChannels, getChannelMessages, createMessage, toggleReaction, createGroup, joinGroup, getGroupMembers, addMember, removeMember, leaveGroup, generateInviteLink, pinMessage, deleteMessageForEveryone, deleteMessageForMe, searchChat, getAllUsersList, type Channel, type ChatMessage } from '../../api/messaging.api';
 import { startInstantMeeting } from '../../api/meetings.api';
 import { useAuthStore } from '../../store/authStore';
@@ -142,6 +142,8 @@ const renderFormattedMessage = (content: string) => {
 
 export const ChatPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -337,9 +339,21 @@ export const ChatPage: React.FC = () => {
   useEffect(() => {
     getChannels().then(data => {
       setChannels(data);
-      if (data.length > 0) setActiveChannel(data[0].id);
+      const target = searchParams.get('channel') || (location.state as any)?.channelId;
+      if (target && data.some(c => c.id.toString() === target.toString())) {
+        setActiveChannel(target.toString());
+      } else if (data.length > 0) {
+        setActiveChannel(data[0].id);
+      }
     });
-  }, []);
+  }, [searchParams, location.state]);
+
+  useEffect(() => {
+    const target = searchParams.get('channel');
+    if (target) {
+      setActiveChannel(target);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (activeChannel) {
