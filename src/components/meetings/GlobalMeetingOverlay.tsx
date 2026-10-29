@@ -22,6 +22,8 @@ export const GlobalMeetingOverlay: React.FC = () => {
     return null;
   }
 
+  const showFullView = !isMinimized;
+
   return (
     <div
       className={`fixed inset-0 z-[9999] transition-all duration-200 ${

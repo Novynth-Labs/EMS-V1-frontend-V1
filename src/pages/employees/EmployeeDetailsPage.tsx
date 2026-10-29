@@ -38,6 +38,7 @@ export const EmployeeDetailsPage: React.FC = () => {
   const { isLoaded: faceApiLoaded, detectFaceAndGetDescriptor, captureFrameAsJpeg } = useFaceApi();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
+  const [enrollStream, setEnrollStream] = useState<MediaStream | null>(null);
   const [enrollStatus, setEnrollStatus] = useState<string>('');
 
   // Performance Review
@@ -221,12 +222,24 @@ export const EmployeeDetailsPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (videoRef.current && enrollStream) {
+      videoRef.current.srcObject = enrollStream;
+    }
+  }, [enrollStream, enrollModal]);
+
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+      streamRef.current = stream;
+      setEnrollStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        streamRef.current = stream;
       }
     } catch (err) {
       setEnrollStatus('Camera access denied or unavailable.');
@@ -238,6 +251,7 @@ export const EmployeeDetailsPage: React.FC = () => {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    setEnrollStream(null);
   };
 
   const handleEnrollFace = async () => {

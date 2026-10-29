@@ -43,7 +43,9 @@ export const ResetPasswordPage: React.FC = () => {
       }, 2000);
     } catch (err: any) {
       console.error('Reset password error:', err);
-      const msg = err.response?.data?.error?.message || err.response?.data?.message;
+      const msg = typeof err.response?.data?.error === 'string'
+        ? err.response?.data?.error
+        : (err.response?.data?.error?.message || err.response?.data?.message);
       setError(msg || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);

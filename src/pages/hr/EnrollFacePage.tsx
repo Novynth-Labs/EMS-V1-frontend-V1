@@ -99,14 +99,18 @@ export const EnrollFacePage: React.FC = () => {
         imagesRef.current = {};
         isProcessingRef.current = false;
         
-        activeStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: { ideal: 640 }, 
-            height: { ideal: 480 }, 
-            facingMode: 'user',
-            frameRate: { ideal: 30 }
-          } 
-        });
+        try {
+          activeStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 640 }, 
+              height: { ideal: 480 }, 
+              facingMode: 'user'
+            } 
+          });
+        } catch (strictErr) {
+          console.warn('[EnrollFace] Strict constraints failed, falling back to basic video:', strictErr);
+          activeStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
         setStream(activeStream);
         if (videoRef.current) {
           videoRef.current.srcObject = activeStream;
@@ -125,6 +129,12 @@ export const EnrollFacePage: React.FC = () => {
       setStream(null);
     };
   }, [selectedEmp]);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   // Execute Background Submission
   const submitEnrollmentInBackground = useCallback(async (

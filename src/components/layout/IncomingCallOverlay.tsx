@@ -1,28 +1,40 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PhoneCall, PhoneOff, Video } from 'lucide-react';
-import { socket } from '../../services/socket';
+import { socket, connectSocketWithToken } from '../../services/socket';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from '../../utils/toast';
 import { getInitials } from '../../utils/initials';
-import { playNotificationSound } from '../../utils/sound';
+import { playNotificationSound, startPhoneRingtone, stopPhoneRingtone } from '../../utils/sound';
 
-// ── Ringtone synthesizer ──────────────────────────────────────
-// ── Ringtone — plays /public/mixkit-waiting-ringtone-1354.wav ─
+// ── Ringtone: Audio file with Web Audio synthesizer fallback ──
 let ringtoneAudio: HTMLAudioElement | null = null;
 
 const startRingtone = () => {
   stopRingtone();
+  let audioPlayed = false;
   try {
     ringtoneAudio = new Audio('/mixkit-waiting-ringtone-1354.wav');
     ringtoneAudio.loop = true;
     ringtoneAudio.volume = 0.8;
-    ringtoneAudio.play().catch(err => {
-      console.warn('[Ringtone] Could not play audio file:', err);
-    });
+    const p = ringtoneAudio.play();
+    if (p) {
+      p.then(() => { audioPlayed = true; }).catch((err) => {
+        console.warn('[Ringtone] File playback failed/blocked. Triggering Web Audio synth:', err);
+        startPhoneRingtone();
+      });
+    }
   } catch (e) {
     console.warn('[Ringtone] Audio element error:', e);
+    startPhoneRingtone();
   }
+
+  // Backup check: if HTMLAudio is not playing within 250ms, start Web Audio ringtone
+  setTimeout(() => {
+    if (!audioPlayed && (!ringtoneAudio || ringtoneAudio.paused)) {
+      startPhoneRingtone();
+    }
+  }, 250);
 };
 
 const stopRingtone = () => {
@@ -31,6 +43,7 @@ const stopRingtone = () => {
     ringtoneAudio.currentTime = 0;
     ringtoneAudio = null;
   }
+  stopPhoneRingtone();
 };
 
 
@@ -83,12 +96,19 @@ export const IncomingCallOverlay: React.FC = () => {
 
   // ── Identify user on socket connect ───────────────────────
   useEffect(() => {
+    connectSocketWithToken();
     const identifyUser = () => {
-      if (user?.id) socket.emit('identify', user.id.toString());
+      if (user?.id) {
+        socket.emit('identify', user.id.toString());
+      }
     };
-    if (socket.connected) identifyUser();
+    if (socket.connected) {
+      identifyUser();
+    }
     socket.on('connect', identifyUser);
-    return () => { socket.off('connect', identifyUser); };
+    return () => {
+      socket.off('connect', identifyUser);
+    };
   }, [user]);
 
   // ── Countdown tick ────────────────────────────────────────

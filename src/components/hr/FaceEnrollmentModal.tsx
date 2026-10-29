@@ -44,6 +44,12 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentModalProps> = ({ isOpen
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
   const handleCapture = async () => {
     if (!videoRef.current) return;
 

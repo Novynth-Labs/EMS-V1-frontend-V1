@@ -56,7 +56,9 @@ export const ForgotPasswordPage: React.FC = () => {
       setIsTimerActive(true);
     } catch (err: any) {
       console.error('Forgot password error:', err);
-      const msg = err.response?.data?.error?.message || err.response?.data?.message;
+      const msg = typeof err.response?.data?.error === 'string'
+        ? err.response?.data?.error
+        : (err.response?.data?.error?.message || err.response?.data?.message);
       setError(msg || 'Unable to request password reset. Please try again.');
     } finally {
       setLoading(false);

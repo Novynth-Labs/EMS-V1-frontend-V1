@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { connectSocketWithToken, disconnectSocket } from '../services/socket';
 
 export type UserRole = string;
 
@@ -56,21 +57,27 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLockedOut: false,
 
-      loginSuccess: (token, user) => set({ 
-        accessToken: token, 
-        user: { ...user, role: normalizeRole(user.role) as UserRole },
-        role: normalizeRole(user.role), 
-        isAuthenticated: true, 
-        isLockedOut: false 
-      }),
+      loginSuccess: (token, user) => {
+        connectSocketWithToken(token);
+        set({ 
+          accessToken: token, 
+          user: { ...user, role: normalizeRole(user.role) as UserRole },
+          role: normalizeRole(user.role), 
+          isAuthenticated: true, 
+          isLockedOut: false 
+        });
+      },
       
-      logout: () => set({ 
-        user: null, 
-        role: null,
-        accessToken: null, 
-        isAuthenticated: false,
-        isLockedOut: false
-      }),
+      logout: () => {
+        disconnectSocket();
+        set({ 
+          user: null, 
+          role: null,
+          accessToken: null, 
+          isAuthenticated: false,
+          isLockedOut: false
+        });
+      },
       setLockedOut: (locked) => set({ isLockedOut: locked }),
       completePasswordChange: () => set((state) => ({
         user: state.user ? { ...state.user, mustChangePassword: false } : null

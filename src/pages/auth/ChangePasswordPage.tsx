@@ -43,7 +43,11 @@ export const ChangePasswordPage: React.FC = () => {
         navigate(route, { replace: true });
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to change password. Please try again.');
+      console.error('Change password error:', err);
+      const msg = typeof err.response?.data?.error === 'string'
+        ? err.response?.data?.error
+        : (err.response?.data?.error?.message || err.response?.data?.message);
+      setError(msg || 'Failed to change password. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -188,10 +188,33 @@ export const MeetingRoom: React.FC = () => {
 
     const initMedia = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        let stream: MediaStream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        } catch (dualErr) {
+          console.warn('[MeetingRoom] Dual audio+video failed, trying video only:', dualErr);
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          } catch (videoOnlyErr) {
+            console.warn('[MeetingRoom] Video only failed, trying audio only:', videoOnlyErr);
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+            } catch (audioOnlyErr) {
+              console.warn('[MeetingRoom] No camera/mic found, creating empty stream:', audioOnlyErr);
+              stream = new MediaStream();
+              toast.warn('No active camera or microphone found. Joined as viewer.');
+            }
+          }
+        }
+
         setLocalStream(stream);
-        cameraTrackRef.current = stream.getVideoTracks()[0];
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        cameraTrackRef.current = stream.getVideoTracks()[0] || null;
+        if (stream.getVideoTracks().length === 0) {
+          setIsVideoOff(true);
+        }
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
 
         const socket = socketRef.current!;
         socket.emit('join-room', roomId, user.id, user.name);
@@ -316,6 +339,13 @@ export const MeetingRoom: React.FC = () => {
     };
   }, [roomId, user]);
 
+  // Keep local video element synchronized whenever layout or stream changes
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, spotlightId, isVideoOff, isScreenSharing]);
+
   const toggleMute = () => {
     if (localStream) {
       const newMuted = !isMuted;
@@ -325,13 +355,44 @@ export const MeetingRoom: React.FC = () => {
     }
   };
 
-  const toggleVideo = () => {
-    if (cameraTrackRef.current) {
-      const newVideoOff = !isVideoOff;
-      cameraTrackRef.current.enabled = !newVideoOff;
-      setIsVideoOff(newVideoOff);
-      socketRef.current?.emit('toggle-media', { isMuted, isVideoOff: newVideoOff, isHandRaised, isScreenSharing });
+  const toggleVideo = async () => {
+    if (!cameraTrackRef.current || cameraTrackRef.current.readyState === 'ended') {
+      try {
+        const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const newTrack = camStream.getVideoTracks()[0];
+        cameraTrackRef.current = newTrack;
+        if (localStream) {
+          localStream.getVideoTracks().forEach(t => {
+            localStream.removeTrack(t);
+            t.stop();
+          });
+          localStream.addTrack(newTrack);
+        } else {
+          setLocalStream(camStream);
+        }
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStream || camStream;
+        }
+        setIsVideoOff(false);
+        socketRef.current?.emit('toggle-media', { isMuted, isVideoOff: false, isHandRaised, isScreenSharing });
+        Object.values(peersRef.current).forEach(peer => {
+          const sender = peer.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(newTrack);
+          } else if (localStream) {
+            peer.addTrack(newTrack, localStream);
+          }
+        });
+        return;
+      } catch (err) {
+        toast.error('Could not access camera.');
+        return;
+      }
     }
+    const newVideoOff = !isVideoOff;
+    cameraTrackRef.current.enabled = !newVideoOff;
+    setIsVideoOff(newVideoOff);
+    socketRef.current?.emit('toggle-media', { isMuted, isVideoOff: newVideoOff, isHandRaised, isScreenSharing });
   };
 
   const toggleHandRaise = () => {

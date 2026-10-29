@@ -62,6 +62,12 @@ export const CheckInPage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
   const handleCapture = async () => {
     if (!videoRef.current || !location) {
       if (!location) setError({ message: 'Waiting for location coordinates...', type: 'geo' });
