@@ -10,7 +10,8 @@ import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-
 export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || 'demo-token';
+  const emailParam = searchParams.get('email') || '';
+  const token = searchParams.get('token') || emailParam || 'demo-token';
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -36,7 +37,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await resetPassword(token, password);
+      await resetPassword(token, password, emailParam);
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');

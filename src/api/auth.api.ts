@@ -55,9 +55,9 @@ export const requestPasswordReset = async (email: string) => {
   }
 };
 
-export const resetPassword = async (token: string, newPassword: string) => {
+export const resetPassword = async (token: string, newPassword: string, email?: string) => {
   try {
-    const response = await api.post('/auth/reset-password', { token, newPassword });
+    const response = await api.post('/auth/reset-password', { token, newPassword, email });
     return response.data;
   } catch (err: any) {
     if (err.response?.status === 404 || !err.response) {
