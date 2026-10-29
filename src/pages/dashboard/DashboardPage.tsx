@@ -15,7 +15,7 @@ import {
   Users, FolderKanban, Clock, Activity, ArrowRight, UserPlus, 
   FileText, CheckCircle, TrendingUp, BarChart3, Briefcase, Calendar, 
   Shield, Zap, Sparkles, Plus, Target, Cpu, Layers, Lock, 
-  DollarSign, BookOpen, AlertTriangle, CheckCircle2, XCircle, Send, HelpCircle
+  DollarSign, BookOpen, AlertTriangle, CheckCircle2, XCircle, Send, HelpCircle, Eye
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
