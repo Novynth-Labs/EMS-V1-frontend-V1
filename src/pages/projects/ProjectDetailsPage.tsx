@@ -378,6 +378,7 @@ export const ProjectDetailsPage: React.FC = () => {
           </div>
         </div>
         
+        <div className="flex items-center gap-4">
           <Button 
             variant="secondary" 
             onClick={() => {

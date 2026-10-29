@@ -15,7 +15,11 @@ export const OnboardingDashboardPage: React.FC = () => {
         setLoading(true);
         const res = await getPendingOnboardings();
         if (mounted && res.success) {
-          setEmployees(res.data);
+          const normalized = (res.data || []).map((emp: EmployeeOnboardingData) => ({
+            ...emp,
+            status: (emp.status?.toLowerCase() === 'active' ? 'Active' : 'Pending') as 'Active' | 'Pending',
+          }));
+          setEmployees(normalized);
           refreshReminders();
         }
       } catch (error) {
