@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -42,7 +46,7 @@ jobs:
       - name: Build Windows Installer (electron-builder)
         run: |
           npm run electron:prepare-cache
-          npx electron-builder --win --x64
+          npx electron-builder --win --x64 --publish never
           node scripts/organize-dist.cjs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,7 +106,7 @@ jobs:
 
       - name: Build Linux AppImage (electron-builder)
         run: |
-          npx electron-builder --linux --x64
+          npx electron-builder --linux --x64 --publish never
           node scripts/organize-dist.cjs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
