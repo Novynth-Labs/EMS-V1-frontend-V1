@@ -261,11 +261,18 @@ export const IncomingCallOverlay: React.FC = () => {
     socket.on('meeting_ended', handleCallCancelled);
     socket.on('global_new_message', handleGlobalNewMessage);
 
+    const handleCallDeclinedFromSW = () => {
+      dismiss();
+      setIncomingCall(null);
+    };
+    window.addEventListener('ems_call_declined', handleCallDeclinedFromSW);
+
     return () => {
       socket.off('incoming_call', handleIncomingCall);
       socket.off('call_cancelled', handleCallCancelled);
       socket.off('meeting_ended', handleCallCancelled);
       socket.off('global_new_message', handleGlobalNewMessage);
+      window.removeEventListener('ems_call_declined', handleCallDeclinedFromSW);
       if (missedCallTimeoutRef.current) clearTimeout(missedCallTimeoutRef.current);
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
       clearCountdown();

@@ -3,6 +3,7 @@ import { getNotifications, markAsRead, markAllAsRead, type AppNotification } fro
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, AlertTriangle, Info, Clock, X, Calendar, CheckSquare, MessageSquare, Shield, Volume2 } from 'lucide-react';
 import { playNotificationSound } from '../../utils/sound';
+import { PushNotificationPrompt } from './PushNotificationPrompt';
 
 export const NotificationInbox: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -85,6 +86,10 @@ export const NotificationInbox: React.FC<{ onClose: () => void }> = ({ onClose }
         >
           Mark all read
         </span>
+      </div>
+
+      <div className="p-2 border-b border-[var(--color-border)] bg-slate-50/50">
+        <PushNotificationPrompt compact />
       </div>
 
       <div className="overflow-y-auto flex-1 p-0">

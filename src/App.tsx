@@ -10,6 +10,8 @@ import { getMyProfile } from './api/profile.api';
 
 import { useMeetingStore } from './store/meetingStore';
 import { GlobalMeetingOverlay } from './components/meetings/GlobalMeetingOverlay';
+import { webPushService } from './services/webPush.service';
+import { PushNotificationPrompt } from './components/notifications/PushNotificationPrompt';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Auth Pages
@@ -140,12 +142,27 @@ function App() {
     }
   }, [isAuthenticated, user]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      webPushService.registerServiceWorker().then(async () => {
+        if (webPushService.getPermission() === 'granted') {
+          try {
+            await webPushService.subscribe();
+          } catch (e) {
+            console.warn('[WebPush] Background subscription sync notice:', e);
+          }
+        }
+      });
+    }
+  }, [isAuthenticated]);
+
   return (
     <ErrorBoundary>
       <OnboardingProvider>
         <HashRouter>
         <DeepLinkListener />
         <GlobalMeetingOverlay />
+        <PushNotificationPrompt />
         <Suspense fallback={
           <div className="flex items-center justify-center min-h-screen bg-slate-50">
             <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
