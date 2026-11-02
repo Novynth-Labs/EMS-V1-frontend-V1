@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     {
       title: 'Projects',
       items: [
-        { label: 'Projects', path: '/projects', icon: <FolderKanban size={18} />, roles: ['Super Admin', 'Dept Head', 'Team Lead', 'HR', 'CEO', 'CTO'] },
+        { label: 'Projects', path: '/projects', icon: <FolderKanban size={18} />, roles: ['Super Admin', 'Dept Head', 'Team Lead', 'HR', 'CEO', 'CTO', 'Employee', 'Intern'] },
         { label: 'New Project', path: '/projects/new', icon: <PlusCircle size={18} />, roles: ['Super Admin', 'Dept Head', 'Team Lead', 'CEO', 'CTO'] },
         { label: 'Quotations', path: '/quotations', icon: <FileText size={18} />, roles: ['Super Admin', 'CEO', 'CTO'] },
       ],

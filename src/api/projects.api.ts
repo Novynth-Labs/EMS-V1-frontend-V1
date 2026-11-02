@@ -37,7 +37,7 @@ export interface Project {
   };
 }
 
-export type TaskStatus = 'To Do' | 'In Progress' | 'Review' | 'Done';
+export type TaskStatus = 'To Do' | 'In Progress' | 'Review' | 'Completed' | 'Done';
 export type TaskPriority = 'Low' | 'Medium' | 'High' | 'URGENT';
 
 export interface ProjectTask {

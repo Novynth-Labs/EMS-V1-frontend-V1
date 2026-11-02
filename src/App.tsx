@@ -197,7 +197,7 @@ function App() {
                 <Route path="/meetings/:id" element={<MeetingRoomPage />} />
 
                 {/* Projects Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'Dept Head', 'Team Lead', 'HR', 'CEO', 'CTO']} />}>
+                <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'Dept Head', 'Team Lead', 'HR', 'CEO', 'CTO', 'Employee', 'Intern']} />}>
                   <Route path="/projects" element={<ProjectsDashboardPage />} />
                   <Route path="/projects/:id" element={<ProjectDetailsPage />} />
                 </Route>
